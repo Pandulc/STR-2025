@@ -20,10 +20,10 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
     return realsize;
 }
 
-void threadCommunicator(ThreadSupervisor& supervisor, int thread_id) {
+void threadCommunicator(ThreadSupervisor& supervisor, std::atomic<bool>& running, int thread_id) {
     curl_global_init(CURL_GLOBAL_ALL);
 
-    while (true) {
+    while (running) {
         try {
             string photo_path = sharedQueue.wait_and_pop();
             supervisor.notify_start(thread_id);

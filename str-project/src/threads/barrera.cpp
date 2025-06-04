@@ -24,10 +24,10 @@ void setupPins() {
     gpioWrite(LED_RED, 0);
 }
 
-void threadBarrier(ThreadSupervisor& supervisor, int thread_id) {
+void threadBarrier(ThreadSupervisor& supervisor, std::atomic<bool>& running, int thread_id) {
     setupPins();
 
-    while (true) {
+    while (running) {
         pthread_barrier_wait(&barrier); // Espera a que todos los hilos lleguen a la barrera
         supervisor.notify_start(thread_id);
 
@@ -36,7 +36,13 @@ void threadBarrier(ThreadSupervisor& supervisor, int thread_id) {
                cout << "\u2705 Acceso autorizado. Abriendo barrera..." << endl;
                 gpioWrite(LED_GREEN, 1);
                 gpioWrite(LED_RED, 0);
-                gpioWrite(BARRIER_PIN, 1); // Abrir barrera
+                int status = gpioWrite(BARRIER_PIN, 1); // Abrir barrera
+
+                if (status != 0) {
+                    cerr << "Error al abrir la barrera" << endl;
+                    supervisor.recovery_thread(thread_id);
+                    continue; // Salir del bucle y esperar a la siguiente iteración
+                }
 
                 sleep(3); // Esperar a que pase el vehículo
 

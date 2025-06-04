@@ -34,13 +34,13 @@ void handle_signal_camera(int signal){
     }
 }
 
-void threadCamera(ThreadSupervisor& supervisor, int thread_id, VideoCapture cam) {
+void threadCamera(ThreadSupervisor& supervisor, std::atomic<bool>& running, int thread_id, VideoCapture cam) {
     Mat frame;
     bool frame_captured = false;
     int count = 0;
     string save_dir = "/home/raspy/str-proyect/photos/";
 
-    while(true){
+    while(running){
         if (pending_photo) {
             try{
                 supervisor.notify_start(thread_id);

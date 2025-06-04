@@ -19,11 +19,23 @@ struct ThreadInfo {
     uint32_t timeout_count{0};
 };
 
-
 ThreadSupervisor::ThreadSupervisor() : supervisor_thread(&ThreadSupervisor::monitor_threads, this) {}
 ThreadSupervisor::~ThreadSupervisor() {
     shutdown = true;
     supervisor_thread.join();
+}
+
+void ThreadSupervisor::set_running_flag(std::atomic<bool>* flag) {
+    running_flag = flag;
+}
+
+void ThreadSupervisor::shutdown_all() {
+    if (running_flag) *running_flag = false;
+
+    lock_guard<mutex> lock(threads_mutex);
+    for (auto& [id, info] : threads_info) {
+        info.is_running = false;
+    }
 }
 
 void ThreadSupervisor::register_thread(int thread_id, microseconds expected_time, function<void()> recovery_func) {
@@ -93,3 +105,4 @@ void ThreadSupervisor::monitor_threads() {
         }
     }
 }
+

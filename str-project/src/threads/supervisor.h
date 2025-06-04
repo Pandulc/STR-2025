@@ -52,13 +52,16 @@ private:
               timeout_count(count) {}
     };
 
-    // Método privado
+    // Métodos privados
     void monitor_threads();
+    void set_running_flag(std::atomic<bool>* flag);
+    void shutdown_all();
 
     // Miembros privados
     std::unordered_map<int, ThreadInfo> threads_info;
     std::mutex threads_mutex;
     std::thread supervisor_thread;
+    std::atomic<bool>* running_flag = nullptr;
     std::atomic<bool> shutdown{false};
     const std::chrono::milliseconds check_interval{50};
     const uint32_t max_retries{3};

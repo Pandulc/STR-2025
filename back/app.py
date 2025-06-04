@@ -387,5 +387,9 @@ def procesar():
     autorizado = resultado is not None
     return jsonify({'autorizado': autorizado, 'patente': patente}), 200
 
+@app.route('/status', methods=['GET'])
+def status():
+    return jsonify({"status": "ok"}), 200
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)

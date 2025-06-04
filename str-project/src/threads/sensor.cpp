@@ -84,14 +84,14 @@ class UltrasonicSensor {
         }
     }; 
 
-void threadSensor(ThreadSupervisor& supervisor, int thread_id) {
+void threadSensor(ThreadSupervisor& supervisor, std::atomic<bool>& running, int thread_id) {
     UltrasonicSensor sensor(TRIGGER_PIN, ECHO_PIN);
     bool detected_car = false;
     sleep(1);
     
     try {
         time_t last_detection = 0;
-        while (true) {
+        while (running) {
             // Notifica el inicio del hilo al supervisor
             supervisor.notify_start(thread_id);
 
