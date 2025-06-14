@@ -1,0 +1,3 @@
+/home/raspy/str-proyect/build/CMakeFiles/str_proyect.dir
+/home/raspy/str-proyect/build/CMakeFiles/edit_cache.dir
+/home/raspy/str-proyect/build/CMakeFiles/rebuild_cache.dir
