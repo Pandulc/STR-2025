@@ -9,7 +9,6 @@ using namespace std;
 using namespace cv;
 
 void threadCamera(ThreadSupervisor& supervisor, atomic<bool>& running, int thread_id, VideoCapture cam);
-//void threadCamera(VideoCapture cam);
 void handle_signal_camera(int signal);
 
 #endif //CAMERA_H

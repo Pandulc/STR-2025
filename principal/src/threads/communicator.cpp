@@ -9,11 +9,24 @@
 
 using namespace std;
 
+/** Barrera para sincronizar hilos luego de cada envío */
 extern pthread_barrier_t barrier;
+
+/** Cola compartida que contiene las rutas de imágenes */
 extern SharedQueue sharedQueue;
+
+/** Bandera para indicar si se debe levantar la barrera tras una respuesta válida */
 extern atomic<bool> lift_barrier;
 
-// Reemplaza el callback lambda con una función estática
+/**
+ * Se encarga de concatenar el contenido recibido en una cadena de texto.
+ *
+ * @param contents Puntero a los datos recibidos.
+ * @param size Tamaño de cada bloque de datos.
+ * @param nmemb Cantidad de bloques.
+ * @param userp Puntero a la variable donde se almacenará la respuesta completa.
+ * @return Número total de bytes procesados.
+ */
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
     size_t realsize = size * nmemb;
     std::string* response = static_cast<std::string*>(userp);
@@ -21,6 +34,12 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
     return realsize;
 }
 
+/**
+ * Hilo que envía imágenes al servidor y sincroniza por barrera
+ * @param supervisor Referencia al supervisor de hilos
+ * @param running Bandera global para detener ejecución
+ * @param thread_id ID del hilo actual
+ */
 void threadCommunicator(ThreadSupervisor& supervisor, std::atomic<bool>& running, int thread_id) {
     curl_global_init(CURL_GLOBAL_ALL);
 
@@ -48,7 +67,7 @@ void threadCommunicator(ThreadSupervisor& supervisor, std::atomic<bool>& running
             long http_code = 0;
 
             // Configuración segura de cURL
-            curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L); // Evita que cURL use señales
+            curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &respuesta);
             curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);

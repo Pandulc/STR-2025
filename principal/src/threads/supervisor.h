@@ -18,13 +18,13 @@ public:
 
     // Métodos públicos
     void register_thread(int thread_id, 
-                        std::chrono::microseconds expected_time, 
-                        std::function<void()> recovery_func);
+                        chrono::microseconds expected_time, 
+                        function<void()> recovery_func);
     
     void notify_start(int thread_id);
     void notify_end(int thread_id);
     void recovery_thread(int thread_id);
-    void set_running_flag(std::atomic<bool>* flag);
+    void set_running_flag(atomic<bool>* flag);
     void shutdown_all();
 
     // Eliminar copias (opcional pero recomendado)
@@ -34,40 +34,38 @@ public:
 private:
     // Estructura interna con constructor por defecto
     struct ThreadInfo {
-        std::chrono::microseconds expected_duration{0};
-        std::chrono::steady_clock::time_point last_start_time{};
-        std::atomic<bool> is_running{false};
-        std::function<void()> recovery_function{nullptr};
+        chrono::microseconds expected_duration{0};
+        chrono::steady_clock::time_point last_start_time{};
+        atomic<bool> is_running{false};
+        function<void()> recovery_function{nullptr};
         uint32_t timeout_count{0};
 
         // Constructor por defecto
         ThreadInfo() = default;
         
         // Constructor con parámetros
-        ThreadInfo(std::chrono::microseconds duration,
-                 std::chrono::steady_clock::time_point start,
+        ThreadInfo(chrono::microseconds duration,
+                 chrono::steady_clock::time_point start,
                  bool running,
-                 std::function<void()> func,
+                 function<void()> func,
                  uint32_t count = 0)
             : expected_duration(duration),
               last_start_time(start),
               is_running(running),
-              recovery_function(std::move(func)),
+              recovery_function(move(func)),
               timeout_count(count) {}
     };
 
     // Métodos privados
     void monitor_threads();
-    // void set_running_flag(std::atomic<bool>* flag);
-    // void shutdown_all();
 
     // Miembros privados
-    std::unordered_map<int, ThreadInfo> threads_info;
-    std::mutex threads_mutex;
-    std::thread supervisor_thread;
-    std::atomic<bool>* running_flag = nullptr;
-    std::atomic<bool> shutdown{false};
-    const std::chrono::milliseconds check_interval{50};
+    unordered_map<int, ThreadInfo> threads_info;
+    mutex threads_mutex;
+    thread supervisor_thread;
+    atomic<bool>* running_flag = nullptr;
+    atomic<bool> shutdown{false};
+    const chrono::milliseconds check_interval{50};
     const uint32_t max_retries{3};
 };
 

@@ -25,7 +25,7 @@ using namespace cv;
 using namespace std;
 using namespace chrono;
 
-// 🆕 Constantes y variables globales
+// Constantes y variables globales
 const int SENSOR_THREAD = 1;
 const int CAMERA_THREAD = 2;
 const int COMMUNICATOR_THREAD = 3;
@@ -37,8 +37,8 @@ const int BARRIER_PIN = 18;
 const int TRIGGER_PIN = 23;
 const int ECHO_PIN = 24;
 
-std::atomic<bool> system_running(true);               // 🆕 Global para signal handler
-ThreadSupervisor* global_supervisor_ptr = nullptr;    // 🆕
+atomic<bool> system_running(true);
+ThreadSupervisor* global_supervisor_ptr = nullptr;
 
 void setThreadPriority(thread &t, int priority) {
     sched_param sch_params;
@@ -48,7 +48,7 @@ void setThreadPriority(thread &t, int priority) {
     }
 }
 
-// 🆕 Signal handler para Ctrl+C - MODIFICADO para no usar exit()
+// Signal handler para Ctrl+C
 void handle_sigint(int signum) {
     cout << "\n🛑 Ctrl+C detectado. Apagando sistema..." << endl;
 
@@ -63,7 +63,6 @@ void handle_sigint(int signum) {
     gpioServo(BARRIER_PIN, 0);
     
     cout << "✅ Señal de apagado enviada. Esperando que terminen los threads...\n";
-    // NO usar exit(0) aquí - dejar que los threads terminen naturalmente
 }
 
 void enter_failsafe_state(const string &reason, ThreadSupervisor &supervisor) {
@@ -83,7 +82,6 @@ void enter_failsafe_state(const string &reason, ThreadSupervisor &supervisor) {
 }
 
 int main() {
-    // 🔧 SOLUCIÓN 1: Bloquear SIGINT en el thread principal ANTES de crear otros threads
     sigset_t signal_set;
     sigemptyset(&signal_set);
     sigaddset(&signal_set, SIGINT);
@@ -95,7 +93,7 @@ int main() {
     }
 
     ThreadSupervisor supervisor;
-    global_supervisor_ptr = &supervisor;  // 🆕
+    global_supervisor_ptr = &supervisor;
 
     supervisor.set_running_flag(&system_running);
 
@@ -112,11 +110,13 @@ int main() {
     cam.set(CAP_PROP_FRAME_WIDTH, 640);
     cam.set(CAP_PROP_FRAME_HEIGHT, 480);
 
-    // 🔧 REMOVIDO: signal(SIGUSR1, handle_signal_camera); - podía causar conflicto
+    // Configurar señales para la cámara
+    signal(SIGUSR1, handle_signal_camera);
+
+    // Configurar barrera
     pthread_barrier_init(&barrier, NULL, NUM_THREADS);
 
     atomic<int> sensor_retries(0);
-
     auto recovery_sensor = [&supervisor, &sensor_retries] () {
         cout << "Intentando recuperación del sensor..." << endl;
         if (++sensor_retries > 5) {
@@ -176,18 +176,19 @@ int main() {
         barrier_retries = 0;
     };
 
+    // Registrar los threads con el supervisor
     supervisor.register_thread(SENSOR_THREAD, milliseconds(200), recovery_sensor);
     supervisor.register_thread(CAMERA_THREAD, milliseconds(1000), recovery_camera);
     supervisor.register_thread(COMMUNICATOR_THREAD, milliseconds(10000), recovery_communicator);
     supervisor.register_thread(BARRIER_THREAD, milliseconds(10000), recovery_barrier);
 
-    // 🔧 Crear los threads de trabajo (heredarán la máscara de señales bloqueada)
+    // Crear los threads de trabajo (heredarán la máscara de señales bloqueada)
     thread t_sensor(threadSensor, ref(supervisor), ref(system_running), SENSOR_THREAD);
     thread t_camera(threadCamera, ref(supervisor), ref(system_running), CAMERA_THREAD, ref(cam));
     thread t_communicator(threadCommunicator, ref(supervisor), ref(system_running), COMMUNICATOR_THREAD);
     thread t_barrier(threadBarrier, ref(supervisor), ref(system_running), BARRIER_THREAD);
 
-    // 🔧 NUEVO: Thread dedicado para manejar señales
+    // Thread dedicado para manejar señales
     thread signal_thread([&signal_set]() {
         int received_signal;
         cout << "🔧 Thread de señales iniciado. Esperando Ctrl+C..." << endl;
@@ -205,7 +206,7 @@ int main() {
     cout << "Sistema iniciado. Esperando eventos...\n";
     cout << "Presiona Ctrl+C para terminar el programa.\n";
 
-    // 🔧 Esperar a que termine el signal_thread (cuando reciba Ctrl+C)
+    // Esperar a que termine el signal_thread (cuando reciba Ctrl+C)
     signal_thread.join();
     
     cout << "🔧 Esperando que terminen los threads de trabajo..." << endl;
