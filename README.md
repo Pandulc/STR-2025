@@ -44,8 +44,8 @@ El sistema utiliza los siguientes pines de la Raspberry Pi, controlados mediante
 | `BARRIER_PIN`| 18   | Control del servomotor de la barrera         |
 | `TRIGGER_PIN`| 23   | Señal de trigger para el sensor ultrasónico  |
 | `ECHO_PIN`   | 24   | Señal de eco del sensor ultrasónico          |
-| `LED_RED`    | 27   | LED rojo, indica estado de error o advertencia |
-| `LED_GREEN`  | 17   | LED verde, indica estado de operación normal |
+| `LED_RED`    | 27   | LED rojo, indica vehiculo no autorizado |
+| `LED_GREEN`  | 17   | LED verde, indica vehiculo autorizado |
 
 
 Notas:
