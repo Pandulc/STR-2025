@@ -28,12 +28,29 @@ repo/
 └── principal/ src
     ├── main.cpp              # lógica principal en C++
     ├── threads               # directorio con los componentes del sistema
-        ├── sensor.cpp        # modulo del sensor para deteccion del vehiculo 
-        ├── camera.cpp        # modulo de la camara para la captura de imagenes
-        ├── communicator.cpp  # modulo de comunicacion con el backend
-        ├── barrera.cpp       # modulo de la barrera fisica
+        ├── sensor.cpp        # módulo del sensor para deteccion del vehiculo 
+        ├── camera.cpp        # módulo de la camara para la captura de imagenes
+        ├── communicator.cpp  # módulo de comunicacion con el backend
+        ├── barrera.cpp       # módulo de la barrera fisica
+    ├── shared_data.h         # archivo de cabecera para gestión de variables compartidas 
     └── CMakeLists.txt        # configuración de compilación
 ```
+
+## 🔌 Pines GPIO utilizados
+El sistema utiliza los siguientes pines de la Raspberry Pi, controlados mediante la librería pigpio:
+
+Pin	GPIO	    Función
+BARRIER_PIN	18	Control del servomotor de la barrera
+TRIGGER_PIN	23	Señal de trigger para el sensor ultrasónico
+ECHO_PIN	24	Señal de eco del sensor ultrasónico
+LED_RED	    27	Indicador LED rojo (vehiculo no autorizado)
+LED_GREEN	17	Indicador LED verde (vehiculo autorizado)
+
+Notas:
+
+- Los LEDs LED_RED y LED_GREEN se inicializan y controlan como salidas digitales para señalización visual.
+- El pin BARRIER_PIN se usa con gpioServo() para controlar el movimiento de la barrera.
+- Los pines TRIGGER_PIN y ECHO_PIN permiten medir distancias mediante un sensor ultrasónico, utilizado para detectar la presencia o ausencia de un vehículo en la zona de paso.
 
 ## ⚙️ Instalación
 
